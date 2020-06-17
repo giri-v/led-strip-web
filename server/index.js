@@ -3,6 +3,7 @@ const morgan = require("morgan");
 const logger = require("./logger");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
+const cors = require("cors");
 
 //////////////////////////////////////////////////////
 //
@@ -34,6 +35,7 @@ const stream = {
 
 var angularDir = __dirname.replace("server", "client") + "/app";
 
+app.use(cors());
 // Setup middleware with logging to stream object
 app.use(morgan("combined", { stream }));
 

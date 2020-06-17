@@ -28,13 +28,15 @@ async function initController() {
     console.log("Running initController!!!");
     for (i = 0; i <= sp108e_options.length - 1; i++) {
         const ctl = new sp108e(sp108e_options[i]);
-        controllers.push(ctl);
         console.log("Getting status for " + sp108e_options[i].host);
         const statResp = await ctl.getStatus();
         var nameResp = "";
         if (ctl.status.result == "OK") {
             nameResp = await ctl.getName();
-            cNames.push(nameResp.substring(7));
+            var rName = nameResp.substring(7);
+            ctl.status.name = rName;
+            cNames.push(ctl.status);
+            controllers.push(ctl);
         }
     }
 }
@@ -47,16 +49,17 @@ const serveApp = (req, res, next) => {
         res.send(JSON.stringify(cNames));
     }
     else
-        setQueryParams(req);
+        setQueryParams(req, res);
+    //next();
 };
 
-async function setQueryParams(req) {
+async function setQueryParams(req, res) {
 
     //console.log("XxX   ---   " + req.path.substring(1));
     for (i = 0; i <= controllers.length - 1; i++) {
         var ctl = controllers[i];
-        console.log(ctl.name);
-        if (ctl.name == "SP108E_" + req.path.substring(1)) {
+        console.log(ctl.name + "  " + cNames[i].name);
+        if (cNames[i].name == req.path.substring(1)) {
             found = true;
             console.log(req.query);
             for (key in req.query) {
@@ -75,6 +78,10 @@ async function setQueryParams(req) {
                     case "static": await ctl.setAnimationMode(ANIM_MODE_STATIC); break;
                 }
             }
+            const statResp = await ctl.getStatus();
+            const statName = await ctl.getName();
+            statResp.name = statName.substring(7);
+            res.send(JSON.stringify(statResp));
         }
     }
 }
